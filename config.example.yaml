@@ -1,0 +1,53 @@
+# 远心相机标定配置文件示例
+# 复制此文件为 config.yaml 并根据实际情况修改
+
+# 路径配置
+paths:
+  # 左相机标定图像目录
+  left_camera_images: "image/20251106leftcalib"
+  
+  # 右相机标定图像目录
+  right_camera_images: "image/20251106rightcalib"
+  
+  # 双目标定图像目录
+  binocular_images: "image/20251106binocular"
+  
+  # 输出目录
+  output_dir: "output"
+
+# 标定板参数
+calibration_board:
+  # 圆点阵列形状 (行数, 列数)
+  dot_array_shape: [7, 7]
+  
+  # 圆点直径 (mm)
+  dot_diameter: 0.1875
+  
+  # 圆点中心间距 (mm)
+  dot_spacing: 0.375
+
+# 双目标定参数
+binocular:
+  # 左相机图像文件名（在双目图像目录中）
+  left_image_name: "0_left.bmp"
+  
+  # 右相机图像文件名（在双目图像目录中）
+  right_image_name: "0_right.bmp"
+
+# 输出设置
+output:
+  # 是否显示详细输出
+  verbose: true
+  
+  # 左相机参数输出文件名
+  left_camera_output: "leftCKmatrix.json"
+  
+  # 右相机参数输出文件名
+  right_camera_output: "rightCKmatrix.json"
+  
+  # 基础矩阵输出文件名
+  fundamental_matrix_output: "fundamentalMatrix.json"
+  
+  # 重建误差输出文件名
+  reconstruction_errors_output: "reconstruction_errors.json"
+
