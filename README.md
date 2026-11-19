@@ -1,17 +1,19 @@
+[English](README.en.md) | 中文
+
 # 远心相机标定项目
 
 ## 项目简介
 
-这是一个用于远心相机标定的Python项目，支持单目和双目标定。项目实现了基于平面标定板的远心相机标定算法，主要参考了Zhong Chen (2014) 和 Hai Li (2024) 的论文方法。
+这是一个用于远心相机标定的 Python 项目，支持单目和双目标定。项目实现了基于平面标定板的远心相机标定算法，主要参考 Zhong Chen (2014) 和 Hai Li (2024) 的论文。
 
 ## 主要特性
 
-- ✅ **单目相机标定**：支持远心相机的内参、外参和畸变系数标定
-- ✅ **双目相机标定**：支持双远心相机系统的标定和三维重建
-- ✅ **配置文件支持**：通过YAML配置文件管理所有参数，无需修改代码
-- ✅ **详细输出控制**：支持verbose参数控制输出详细程度
-- ✅ **中文路径支持**：完全支持中文路径的图像读取和保存
-- ✅ **模块化设计**：清晰的代码结构，便于维护和扩展
+- 单目相机标定：内参、外参和径向畸变
+- 双目相机标定：双远心相机的标定和三维重建
+- YAML 配置：路径和标定板参数都在配置文件里
+- 输出详细程度可由 `verbose` 控制
+- 图像读写支持中文路径
+- 业务代码集中在 `src/telecentric_calib`
 
 ## 安装说明
 
@@ -22,42 +24,39 @@
 
 ### 安装步骤
 
-1. 克隆或下载本项目到本地
+1. 克隆本项目
 
-2. 安装依赖包：
+2. 安装依赖：
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. 准备配置文件：
-```bash
-# 复制配置文件模板
-cp config.example.yaml config.yaml
+示例脚本会把 `src` 加入 `sys.path`，安装依赖后即可运行。若要在其他目录中 `import telecentric_calib`，再执行：
 
-# 编辑config.yaml，设置你的图像路径和标定板参数
+```bash
+pip install -e .
 ```
+
+3. 准备配置文件：
+
+```bash
+cp config.example.yaml config.yaml
+```
+
+然后编辑 `config.yaml`，填入图像路径和标定板参数。
 
 ## 快速开始
 
-### 1. 配置设置
+编辑 `config.yaml` 中的图像目录、圆点阵列、直径、间距和输出文件名。
 
-编辑 `config.yaml` 文件，设置以下参数：
-
-- **路径配置**：设置标定图像目录和输出目录
-- **标定板参数**：设置圆点阵列形状、直径和间距
-- **输出设置**：设置是否显示详细输出和输出文件名
-
-### 2. 单相机标定
-
-运行单相机标定示例：
+单相机标定：
 
 ```bash
 python examples/example_single_camera.py
 ```
 
-### 3. 双相机标定
-
-运行双相机标定示例：
+双相机标定：
 
 ```bash
 python examples/example_dual_camera.py
@@ -67,22 +66,24 @@ python examples/example_dual_camera.py
 
 ### 单目标定流程
 
-1. **准备标定图像**：拍摄多张（建议10张以上）不同姿态的标定板图像
-2. **配置参数**：在 `config.yaml` 中设置图像目录和标定板参数
-3. **运行标定**：执行 `example_single_camera.py`
-4. **获取结果**：标定结果保存在输出目录的JSON文件中
+1. 拍摄至少 4 张不同姿态的标定板图像，建议 10 张以上
+2. 在 `config.yaml` 中设置图像目录和标定板参数
+3. 运行 `examples/example_single_camera.py`
+4. 结果写入输出目录中的 JSON 文件
+
+内参线性求解至少需要 4 张图像。图像按目录列举顺序读取，不另行排序。
 
 ### 双目标定流程
 
-1. **单相机标定**：分别对左右相机进行单目标定
-2. **准备双目图像**：拍摄左右相机同步采集的标定板图像
-3. **配置参数**：在 `config.yaml` 中设置双目图像目录和文件名
-4. **运行双目标定**：执行 `example_dual_camera.py`
-5. **获取结果**：获得基础矩阵、重建误差等结果
+1. 分别完成左右相机的单目标定
+2. 准备左右相机同步采集的一对标定板图像
+3. 在 `config.yaml` 中设置双目图像目录和文件名
+4. 运行 `examples/example_dual_camera.py`
+5. 得到投影矩阵、基础矩阵和重建误差
 
 ### 配置文件说明
 
-配置文件 `config.yaml` 包含以下主要部分：
+`config.yaml` 的主要字段：
 
 ```yaml
 paths:
@@ -101,7 +102,7 @@ binocular:
   right_image_name: "0_right.bmp"       # 右相机图像文件名
 
 output:
-  verbose: true                          # 是否显示详细输出
+  verbose: true
   left_camera_output: "leftCKmatrix.json"
   right_camera_output: "rightCKmatrix.json"
 ```
@@ -110,68 +111,51 @@ output:
 
 ```
 telecentric-camera-calibration/
-├── README.md                      # 本文件
-├── LICENSE                        # BSD-2-Clause许可证
-├── requirements.txt               # 依赖列表
-├── .gitignore                    # Git忽略规则
-├── config.example.yaml            # 配置文件模板
-├── docs/                          # 文档目录
-│   ├── 数学推导.md                # 数学原理详细推导
-│   └── images/                    # 文档图片
-├── src/telecentric_calib/         # 业务代码
-│   ├── api.py                    # calibrate_mono / calibrate_stereo
-│   ├── config.py                 # YAML 配置
-│   ├── params.py                 # 相机参数
-│   ├── board.py                  # 标定板与世界坐标
-│   ├── io.py                     # 图像、JSON、可视化
-│   ├── detect/                   # 圆点检测
-│   │   ├── ellipse.py
-│   │   ├── geometry.py
-│   │   ├── circles.py
-│   │   ├── halcon_board.py
-│   │   └── fallback.py
-│   ├── mono/                     # 单目标定
-│   │   ├── linear.py
-│   │   ├── pose.py
-│   │   └── optimize.py
-│   └── stereo.py                 # 双目标定与重建
-└── examples/                      # 示例脚本
-    ├── example_single_camera.py
-    ├── example_dual_camera.py
-    └── detect/
+├── README.md                      # 中文说明
+├── README.en.md                   # English
+├── LICENSE                        # BSD-2-Clause
+├── requirements.txt
+├── pyproject.toml                 # src 布局安装配置
+├── config.example.yaml
+├── docs/
+│   └── 数学推导.md
+├── examples/
+│   ├── example_single_camera.py
+│   ├── example_dual_camera.py
+│   └── detect/
+└── src/telecentric_calib/
+    ├── api.py                     # calibrate_mono / calibrate_stereo
+    ├── config.py
+    ├── params.py
+    ├── board.py
+    ├── io.py
+    ├── detect/                    # 圆点检测
+    ├── mono/                      # 单目标定
+    └── stereo.py                  # 双目重建
 ```
 
 ## 标定板检测
 
-圆点检测在 `telecentric_calib.detect` 中，是 [find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 的 Python 移植。
+圆点检测在 `telecentric_calib.detect`，是 [find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 的 Python 移植。
 
-- **原项目**：https://github.com/Neucrede/find_calib_pattern
-- **许可证**：BSD-2-Clause License
-- **功能**：检测 HALCON 标定板，或提取圆形网格阵列的中心点
-- **对外函数**：`FindCirclesGridPattern`、`FindHalconCalibBoard`
+- 原项目：https://github.com/Neucrede/find_calib_pattern
+- 许可证：BSD-2-Clause License
+- 对外函数：`FindCirclesGridPattern`、`FindHalconCalibBoard`
 
-标定流程通过 `telecentric_calib.detect.fallback` 使用这组函数：先找普通圆网格，失败后再找 HALCON 标定板。对外入口是 `calibrate_mono` 和 `calibrate_stereo`。
-
-感谢原项目作者 Neucrede 的开源贡献！
+标定先找普通圆网格，失败后再找 HALCON 标定板。对外入口是 `calibrate_mono` 和 `calibrate_stereo`。
 
 ## 数学原理
 
-详细的数学推导过程请参考 [docs/数学推导.md](docs/数学推导.md)。
+推导见 [docs/数学推导.md](docs/数学推导.md)。文档中的内参回代、线性方程组和符号求解与当前代码一致，并补充了双目重建所用的方程。
 
-本项目实现的标定算法主要基于以下论文：
+本项目主要基于：
 
-1. **Chen, Z., et al. (2014)** - "Telecentric stereo micro-vision system: Calibration method and experiments"
-2. **Li, H., et al. (2024)** - "Flexible Calibration of the Telecentric Vision Systems Using Only Planar Calibration Target"
+1. Chen, Z., et al. (2014). Telecentric stereo micro-vision system: Calibration method and experiments.
+2. Li, H., et al. (2024). Flexible Calibration of the Telecentric Vision Systems Using Only Planar Calibration Target.
 
-标定流程包括：
-1. 单应性矩阵求解
-2. 内参矩阵求解
-3. 外参矩阵求解（包括旋转矩阵的完整求解）
-4. 畸变模型优化
+单目标定依次求解单应矩阵、内参、完整旋转矩阵，再加入径向畸变做整体优化。
 
 ## 引用说明
-
-如果您在研究中使用了本项目，请引用相关论文：
 
 ```bibtex
 @article{chen2014telecentric,
@@ -198,58 +182,21 @@ telecentric-camera-calibration/
 
 ## 测试数据
 
-由于测试图像文件体积较大，未包含在本仓库中。用户需要自行准备标定图像（或是向作者咨询索取）：
+测试图像体积较大，未包含在本仓库中。请自行准备标定图像。
 
-- **单目标定**：需要多张（建议10张以上）不同姿态的标定板图像
-- **双目标定**：需要左右相机分别的单目标定图像，以及同步采集的双目图像对
-
-标定板要求：
-- 使用HALCON圆形网格标定板
-- 圆点阵列建议为7×7或更大
-- 确保标定板在图像中清晰可见
+- 单目标定：至少 4 张不同姿态的图像，建议 10 张以上
+- 双目标定：左右相机各自的单目标定图像，以及一对同步图像
+- 标定板：普通圆形网格或 HALCON 圆形标定板，阵列建议 7×7 或更大
 
 ## 许可证
 
-本项目采用 **BSD-2-Clause License** 许可证。
-
-```
-BSD 2-Clause License
-
-Copyright (c) 2025, YLChen
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-```
+本项目采用 BSD-2-Clause License，全文见 [LICENSE](LICENSE)。
 
 ## 致谢
 
-- 感谢 [Neucrede/find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 项目提供的标定板检测算法，现位于 `telecentric_calib.detect`
+- 感谢 [Neucrede/find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 提供标定板检测算法，现位于 `telecentric_calib.detect`
 - 感谢相关论文作者提供的理论支持
 
 ## 联系方式
 
-如有问题或建议，欢迎通过GitHub Issues联系。
-
----
-
-**注意**：本项目正在持续开发中，部分功能可能需要进一步完善。欢迎贡献代码和提出建议！
-
+问题或建议请通过 GitHub Issues 联系。

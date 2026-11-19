@@ -60,11 +60,12 @@ tmp/
 ehthumbs.db
 Thumbs.db
 
-# 测试图像目录（体积较大，不包含在仓库中）
-image/
-images/
-test_images/
-data/
+# 仓库根目录下的测试图像（体积较大，不包含在仓库中）
+# 只忽略根目录，docs/images 里的插图可以提交
+/image/
+/images/
+/test_images/
+/data/
 
 # Jupyter Notebook
 .ipynb_checkpoints
