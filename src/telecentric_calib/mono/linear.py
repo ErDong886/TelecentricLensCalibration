@@ -41,11 +41,11 @@ def calculate_homography_matrix(points_pixel, points_world):
 
 def calculate_intrinsic_matrix(H_matrices):
     """
-    根据一系列单应性矩阵，计算并返回远心相机的内参 alpha, beta, gamma。
+    根据一系列单应性矩阵，计算并返回远心相机的 3×3 内参矩阵 A。
     该实现基于Chen等(2014)和Li等(2024)论文中描述的线性标定方法。
 
     :param H_matrices: 一个列表，其中每个元素都是一个3x3的单应性矩阵(Numpy array)。
-    :return: 一个元组 (alpha, beta, gamma)，包含了计算出的三个内参。
+    :return: 3×3 内参矩阵 A。A[0, 0] 为 alpha，A[0, 1] 为 gamma，A[1, 1] 为 beta。
     :raises ValueError: 如果输入的单应性矩阵数量少于4个，或者在计算中出现数学错误（如对负数开方）。
     """
 
@@ -63,7 +63,7 @@ def calculate_intrinsic_matrix(H_matrices):
         h11, h12, _ = H[0]
         h21, h22, _ = H[1]
 
-        # 根据公式(14)构建G矩阵的一行
+        # 根据式(6)构建 G 矩阵的一行
         g1 = 1.0
         g2 = -(h21**2 + h22**2)
         g3 = -(h11**2 + h12**2)

@@ -226,11 +226,14 @@ class DualCameraCalibrator:
         
         rms_distorted = np.sqrt(np.mean(errors_distorted**2))
         rms_undistorted = np.sqrt(np.mean(errors_undistorted**2))
-        improvement = (rms_distorted - rms_undistorted) / rms_distorted * 100
         
         self._print(f"\n不带畸变校正 RMS误差: {rms_distorted:.4f} mm")
         self._print(f"带畸变校正 RMS误差:   {rms_undistorted:.4f} mm")
-        self._print(f"精度提升: {improvement:.2f}%")
+        if rms_distorted == 0:
+            self._print("未校正 RMS 为 0，不计算提升比例")
+        else:
+            improvement = (rms_distorted - rms_undistorted) / rms_distorted * 100
+            self._print(f"精度提升: {improvement:.2f}%")
         
         return Mat_left, Mat_right, reconstructed_points_undistorted, points_world_theory, {
             'distorted': reconstructed_points_distorted,
@@ -399,7 +402,10 @@ class DualCameraCalibrator:
         self._print(f"   总点数: {len(points_theory)}")
         self._print(f"   不带校正 RMS误差: {rms_distorted:.4f} mm")
         self._print(f"   带校正 RMS误差: {rms_undistorted:.4f} mm")
-        self._print(f"   精度提升: {improvement:.2f}%")
+        if rms_distorted == 0:
+            self._print("   未校正 RMS 为 0，不计算提升比例")
+        else:
+            self._print(f"   精度提升: {improvement:.2f}%")
         
         return output_data
 

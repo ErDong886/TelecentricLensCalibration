@@ -60,7 +60,7 @@ def get_image_files(image_dir: str) -> List[str]:
         image_dir: 图像目录路径
     
     返回:
-        图像文件路径列表
+        图像文件路径列表，顺序与目录列举顺序一致，不另行排序
     """
     if os.path.isfile(image_dir):
         return [image_dir]
@@ -70,7 +70,7 @@ def get_image_files(image_dir: str) -> List[str]:
         if f.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp')):
             image_files.append(os.path.join(image_dir, f))
     
-    return sorted(image_files)
+    return image_files
 
 
 def save_json(data: dict, output_path: str, indent: int = 4) -> None:
@@ -127,7 +127,7 @@ def visualize_detection(image: np.ndarray, centers: List[Tuple[float, float]],
 def save_camera_params(final_params, output_path, image_index=0, log=print):
     """保存一台相机的 CK 矩阵、内参、畸变和外参。"""
     if final_params is None:
-        raise ValueError("final_params未确定，请先执行single_camera_calibration")
+        raise ValueError("final_params未确定，请先执行 calibrate_mono")
 
     alpha, beta, gamma, k1, k2, rotations, translations = final_params
     if image_index >= len(rotations):

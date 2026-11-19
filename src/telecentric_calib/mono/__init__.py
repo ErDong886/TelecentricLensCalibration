@@ -73,7 +73,7 @@ class MonoCalibration:
     def known_intrinsic_calibration_single_image(self, image_path):
         """用已经确定的内参求一张图像的外参。"""
         if self.final_params is None:
-            raise ValueError("final_params未确定，请先确定单相机参数，使用single_camera_calibration方法")
+            raise ValueError("final_params未确定，请先执行 calibrate_mono")
         image = read_image(image_path)
         pat_size = self.param_holder.get_board_dict()["dot_array_shape"]
         success, centers, _, _ = find_centers(image, pat_size)

@@ -32,8 +32,6 @@ except ImportError as e:
 def main():
     """双相机标定示例"""
     try:
-        import numpy as np
-        
         # 加载配置文件
         config = get_config()
         print("=" * 60)
@@ -216,8 +214,11 @@ def main():
         rms_undistorted = np.sqrt(np.mean(errors_undistorted**2))
         print(f"整体RMS误差: {rms_undistorted:.6f} mm")
         
-        improvement = (rms_distorted - rms_undistorted) / rms_distorted * 100
-        print(f"\n精度提升: {improvement:.2f}%")
+        if rms_distorted == 0:
+            print("\n未校正 RMS 为 0，不计算提升比例")
+        else:
+            improvement = (rms_distorted - rms_undistorted) / rms_distorted * 100
+            print(f"\n精度提升: {improvement:.2f}%")
         
         print("\n✅ 所有标定结果已保存！")
         print(f"  - {left_output_path}: 左相机内参和外参")
