@@ -119,3 +119,65 @@ class CalibParamHolder:
             f")"
         )
 
+
+class PatternBoard:
+    """标定板几何：控制点形状、间距，以及 Z=0 的世界坐标网格。"""
+
+    def __init__(self, pattern_type: int, shape: tuple, distance: float, pixel_size: tuple, radius: float = None):
+        """
+        :param pattern_type: 0 为棋盘格，1 为 halcon 标定板
+        :param shape: (x, y) 控制点形状
+        :param distance: 控制点间距，单位 mm
+        :param pixel_size: (x, y) 像素尺寸，单位 um
+        :param radius: halcon 圆点半径，单位 mm
+        """
+        if not isinstance(pattern_type, int) or pattern_type not in [0, 1]:
+            raise ValueError("pattern_type must be an integer, either 0 (棋盘格) or 1 (halcon标定板).")
+
+        if not isinstance(shape, tuple) or len(shape) != 2 or not all(
+                isinstance(dim, int) and dim > 0 for dim in shape):
+            raise ValueError("shape must be a tuple of two positive integers (x, y).")
+
+        if not isinstance(distance, (int, float)) or distance <= 0:
+            raise ValueError("distance must be a positive number (greater than 0).")
+
+        if not isinstance(pixel_size, tuple) or len(pixel_size) != 2 or not all(
+                isinstance(dim, (int, float)) and dim > 0 for dim in pixel_size):
+            raise ValueError("pixel_size must be a tuple of two positive numbers (x, y).")
+
+        if pattern_type == 1 and radius is None:
+            raise ValueError("For pattern_type 1 (halcon标定板), radius must be provided.")
+
+        self.pattern_type = pattern_type
+        self.shape = shape
+        self.distance = distance
+        self.pixel_size = pixel_size
+        self.radius = radius
+
+    def generate_world_points_grid(self):
+        """生成世界坐标系下的控制点网格（Z=0），单位为 mm。"""
+        width, height = self.shape
+        points = np.zeros((width * height, 3), np.float32)
+        for row in range(height):
+            for col in range(width):
+                points[row * width + col] = [row, col, 0]
+        return points * self.distance
+
+
+def pattern_board_from_holder(param_holder: CalibParamHolder) -> PatternBoard:
+    """用参数容器里的标定板设置构造 PatternBoard。"""
+    board_params = param_holder.get_board_dict()
+    if board_params["dot_array_shape"] is None:
+        raise ValueError("标定板参数未设置！请先设置 dot_array_shape")
+    if board_params["dot_diameter"] is None:
+        raise ValueError("标定板参数未设置！请先设置 dot_diameter")
+    if board_params["dot_spacing"] is None:
+        raise ValueError("标定板参数未设置！请先设置 dot_spacing")
+    return PatternBoard(
+        pattern_type=1,
+        shape=board_params["dot_array_shape"],
+        distance=board_params["dot_spacing"],
+        pixel_size=(3.45, 3.45),
+        radius=board_params["dot_diameter"] / 2,
+    )
+

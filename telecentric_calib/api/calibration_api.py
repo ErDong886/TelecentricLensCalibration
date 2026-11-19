@@ -3,9 +3,8 @@
 提供高级封装接口
 """
 import time
-from ..src.calibrator import TelecentricCalibrator
-from ..src.params import CalibParamHolder
-from ..src.detector import PatternBoard
+from ..params import CalibParamHolder, PatternBoard
+from ..single import TelecentricCalibrator
 
 
 def run_calibration(

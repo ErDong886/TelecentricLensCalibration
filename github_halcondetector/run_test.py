@@ -9,16 +9,19 @@
     python run_test.py ../find_calib_pattern/test/               # 批量处理文件夹
 """
 
-import sys
+import glob
 import os
+import sys
+from pathlib import Path
+
 import cv2
 import numpy as np
-from pathlib import Path
-import glob
 
-# 导入本地模块
-from fit_ellipse_subpixel import fit_ellipse_subpixel
-from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from telecentric_calib.halcon_detector import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 WINDOW_NAME = "标定板检测结果"

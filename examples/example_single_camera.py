@@ -13,7 +13,7 @@ sys.path.insert(0, project_root)
 
 try:
     from telecentric_calib.params import CalibParamHolder
-    from telecentric_calib.calibrator import TelecentricCalibrator
+    from telecentric_calib.single import TelecentricCalibrator
     from telecentric_calib.config import get_config
 except ImportError as e:
     print(f"✗ 模块导入失败: {e}")

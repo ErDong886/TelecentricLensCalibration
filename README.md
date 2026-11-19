@@ -110,31 +110,38 @@ output:
 
 ```
 telecentric-camera-calibration/
-├── README.md                      # 本文件
-├── LICENSE                        # BSD-2-Clause许可证
-├── requirements.txt               # 依赖列表
-├── .gitignore                    # Git忽略规则
-├── config.example.yaml            # 配置文件模板
-├── docs/                          # 文档目录
-│   ├── 数学推导.md                # 数学原理详细推导
-│   └── images/                    # 文档图片
-├── telecentric_calib/             # 主代码包
-│   ├── __init__.py
-│   ├── config.py                 # 配置管理模块
-│   ├── calibrator.py             # 标定器核心模块
-│   ├── detector.py               # 检测器模块
-│   ├── params.py                 # 参数管理模块
-│   └── utils.py                  # 工具函数模块
-├── examples/                      # 示例代码
-│   ├── example_single_camera.py  # 单相机标定示例
-│   └── example_dual_camera.py    # 双相机标定示例
-└── github_halcondetector/         # 标定板检测器（Python移植版）
-    └── ...
+├── README.md
+├── requirements.txt
+├── config.example.yaml
+├── docs/数学推导.md
+├── examples/
+│   ├── example_single_camera.py
+│   └── example_dual_camera.py
+├── github_halcondetector/          # 旧的检测脚本入口，实现已收进下面的包
+└── telecentric_calib/
+    ├── params.py                   # 相机参数与标定板几何
+    ├── detect.py                   # 唯一的圆点检测入口
+    ├── io.py                       # 图像与 JSON
+    ├── config.py
+    ├── stereo.py                   # 双目标定
+    ├── halcon_detector/            # 圆点检测实现
+    └── single/
+        ├── calibrate.py            # 六步调用
+        ├── homography.py           # 单应与内参
+        ├── extrinsics.py           # r31/r32 与旋转矩阵
+        └── optimize.py             # 整体优化
+```
+
+单目标定从 `telecentric_calib.single` 导入，双目从 `telecentric_calib.stereo` 导入：
+
+```python
+from telecentric_calib.single import TelecentricCalibrator
+from telecentric_calib.stereo import DualCameraCalibrator
 ```
 
 ## github_halcondetector 说明
 
-本项目使用了 `github_halcondetector` 模块进行标定板检测。该模块是对原项目 [find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 的Python移植版本。
+圆点检测的实现在 `telecentric_calib/halcon_detector`，由原项目 [find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 移植而来。仓库根目录的 `github_halcondetector/` 只保留原来的脚本入口。
 
 - **原项目**：https://github.com/Neucrede/find_calib_pattern
 - **许可证**：BSD-2-Clause License

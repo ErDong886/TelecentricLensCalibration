@@ -17,10 +17,13 @@ import os
 import cv2
 import numpy as np
 
-# 添加当前目录到路径以支持直接运行
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
 
-from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from telecentric_calib.halcon_detector import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 WINDOW_NAME = "FindHalconCalibBoard()"

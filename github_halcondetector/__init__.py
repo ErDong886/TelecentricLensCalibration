@@ -1,18 +1,12 @@
-"""
-find_calib_pattern - Python版本
-用于检测和识别图像中的标定板圆形标记点
+"""兼容旧的导入路径。检测实现在 telecentric_calib.halcon_detector。"""
+import sys
+from pathlib import Path
 
-Author: Converted from C++ version by Neucrede
-"""
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
-# 支持多种导入方式
-try:
-    from .find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
-except ImportError:
-    from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+from telecentric_calib.halcon_detector import FindCirclesGridPattern, FindHalconCalibBoard
 
 __version__ = "1.0.0"
-__all__ = ['FindCirclesGridPattern', 'FindHalconCalibBoard']
-
-
-
+__all__ = ["FindCirclesGridPattern", "FindHalconCalibBoard"]
