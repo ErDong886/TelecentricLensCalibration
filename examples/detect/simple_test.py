@@ -4,14 +4,17 @@
 简单测试脚本 - 不依赖命令行参数
 """
 
+import sys
+from pathlib import Path
+
 import cv2
 import numpy as np
-import sys
-import os
 
-# 导入本地模块
-from fit_ellipse_subpixel import fit_ellipse_subpixel
-from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+_ROOT = Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from telecentric_calib.pattern import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 def main():

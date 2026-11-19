@@ -6,9 +6,17 @@
 2. Halcon标定板检测
 """
 
+import sys
+from pathlib import Path
+
 import cv2
 import numpy as np
-from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+
+_ROOT = Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from telecentric_calib.pattern import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 def example_circles_grid():

@@ -1,48 +1,10 @@
 from .params import CalibParamHolder
+from .pattern import FindCirclesGridPattern, FindHalconCalibBoard
 from .utils import read_image
 import cv2
 import numpy as np
 import json
 import os
-import sys
-
-# 添加父目录到路径，以便导入github_halcondetector
-# 支持多种路径查找方式，提高灵活性
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(os.path.dirname(current_dir))
-halcon_path = os.path.join(parent_dir, 'github_halcondetector')
-
-# 尝试多个可能的路径
-possible_paths = [
-    halcon_path,  # 项目根目录下的github_halcondetector
-    os.path.join(current_dir, '..', 'github_halcondetector'),  # 相对路径
-    os.path.join(os.getcwd(), 'github_halcondetector'),  # 当前工作目录
-]
-
-for path in possible_paths:
-    abs_path = os.path.abspath(path)
-    if os.path.exists(abs_path) and abs_path not in sys.path:
-        sys.path.insert(0, abs_path)
-        break
-
-# 尝试导入github_halcondetector，如果失败则尝试直接导入find_calib_pattern
-try:
-    from github_halcondetector import FindHalconCalibBoard, FindCirclesGridPattern
-except ImportError:
-    try:
-        from find_calib_pattern import FindHalconCalibBoard, FindCirclesGridPattern
-    except ImportError:
-        # 如果还是失败，尝试从绝对路径导入
-        find_calib_pattern_path = os.path.join(halcon_path, 'find_calib_pattern.py')
-        if os.path.exists(find_calib_pattern_path):
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("find_calib_pattern", find_calib_pattern_path)
-            find_calib_pattern = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(find_calib_pattern)
-            FindHalconCalibBoard = find_calib_pattern.FindHalconCalibBoard
-            FindCirclesGridPattern = find_calib_pattern.FindCirclesGridPattern
-        else:
-            raise ImportError(f"无法导入github_halcondetector模块，路径: {halcon_path}")
 
 class TelecentricCalibrator:
     # 初始化标定器，传入参数容器和图像目录，以及是否可视化
@@ -149,7 +111,7 @@ class TelecentricCalibrator:
             raise ValueError("final_params未确定，请先确定单相机参数，使用single_camera_calibration方法")
         image = read_image(image_path)
         
-        # 使用新的github_halcondetector进行角点检测
+        # 使用 pattern 包检测标定板圆点
         # 检测逻辑完全符合run_test.py的实现
         # FindHalconCalibBoard 和 FindCirclesGridPattern 已在文件开头导入
         board_params = self.param_holder.get_board_dict()
@@ -397,7 +359,7 @@ class TelecentricCalibrator:
         # 创建标定板对象
         self.pattern_board = _create_pattern_board(self)
         
-        # 使用新的github_halcondetector进行角点检测
+        # 使用 pattern 包检测标定板圆点
         # 检测逻辑完全符合run_test.py的实现
         # FindHalconCalibBoard 和 FindCirclesGridPattern 已在文件开头导入
         
@@ -422,7 +384,7 @@ class TelecentricCalibrator:
         points_world = []
         points_pixel = []
         
-        self._print("\n🔍 使用github_halcondetector检测标定板...")
+        self._print("\n🔍 检测标定板...")
         self._print(f"   标定板尺寸: {pat_size[0]}x{pat_size[1]}")
         self._print(f"   找到 {len(image_files)} 张图像")
         
@@ -933,7 +895,7 @@ class DualCameraCalibrator:
         left_image = read_image(left_image_path)
         right_image = read_image(right_image_path)
         
-        # 使用新的github_halcondetector进行角点检测
+        # 使用 pattern 包检测标定板圆点
         # FindHalconCalibBoard 和 FindCirclesGridPattern 已在文件开头导入
         board_params = self.left_camera.param_holder.get_board_dict()
         pat_size = board_params['dot_array_shape']

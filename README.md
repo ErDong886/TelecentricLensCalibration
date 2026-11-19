@@ -122,23 +122,31 @@ telecentric-camera-calibration/
 │   ├── __init__.py
 │   ├── config.py                 # 配置管理模块
 │   ├── calibrator.py             # 标定器核心模块
-│   ├── detector.py               # 检测器模块
+│   ├── detector.py               # 标定侧检测入口（标定板与回退策略）
+│   ├── pattern/                  # 圆点检测算法
+│   │   ├── ellipse.py            # 亚像素椭圆拟合
+│   │   ├── geometry.py           # 角点、聚类、排序
+│   │   ├── circles.py            # 普通圆网格
+│   │   └── halcon_board.py       # HALCON 标定板
 │   ├── params.py                 # 参数管理模块
 │   └── utils.py                  # 工具函数模块
 ├── examples/                      # 示例代码
 │   ├── example_single_camera.py  # 单相机标定示例
-│   └── example_dual_camera.py    # 双相机标定示例
-└── github_halcondetector/         # 标定板检测器（Python移植版）
-    └── ...
+│   ├── example_dual_camera.py    # 双相机标定示例
+│   └── detect/                   # 标定板检测脚本
+└── ...
 ```
 
-## github_halcondetector 说明
+## 标定板检测
 
-本项目使用了 `github_halcondetector` 模块进行标定板检测。该模块是对原项目 [find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 的Python移植版本。
+圆点检测在 `telecentric_calib.pattern` 中，是 [find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 的 Python 移植。
 
 - **原项目**：https://github.com/Neucrede/find_calib_pattern
 - **许可证**：BSD-2-Clause License
-- **功能**：检测HALCON标定板图案并提取圆形网格阵列的中心点
+- **功能**：检测 HALCON 标定板，或提取圆形网格阵列的中心点
+- **对外函数**：`FindCirclesGridPattern`、`FindHalconCalibBoard`
+
+标定流程通过 `telecentric_calib.detector` 使用这组函数：先找普通圆网格，失败后再找 HALCON 标定板。
 
 感谢原项目作者 Neucrede 的开源贡献！
 
@@ -230,7 +238,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## 致谢
 
-- 感谢 [Neucrede/find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 项目提供的标定板检测算法
+- 感谢 [Neucrede/find_calib_pattern](https://github.com/Neucrede/find_calib_pattern) 项目提供的标定板检测算法，现位于 `telecentric_calib.pattern`
 - 感谢相关论文作者提供的理论支持
 
 ## 联系方式

@@ -1,28 +1,9 @@
-"""
-检测器模块
-使用github_halcondetector进行标定板检测
-"""
+"""标定侧检测入口：标定板参数，以及圆网格 / HALCON 板的回退检测。"""
 import cv2
 import numpy as np
 from typing import List, Tuple, Optional
-import sys
-import os
 
-# 添加github_halcondetector到路径
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(os.path.dirname(current_dir))
-halcon_path = os.path.join(parent_dir, 'github_halcondetector')
-if halcon_path not in sys.path:
-    sys.path.insert(0, halcon_path)
-
-try:
-    from github_halcondetector import FindHalconCalibBoard, FindCirclesGridPattern
-except ImportError:
-    # 如果直接导入失败，尝试相对导入
-    try:
-        from find_calib_pattern import FindHalconCalibBoard, FindCirclesGridPattern
-    except ImportError:
-        raise ImportError("无法导入github_halcondetector模块，请确保该模块在Python路径中")
+from ..pattern import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 class PatternBoard:

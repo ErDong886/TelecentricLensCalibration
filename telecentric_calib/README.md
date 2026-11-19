@@ -11,7 +11,8 @@ refactored/
 ├── src/                    # 核心源代码
 │   ├── __init__.py
 │   ├── params.py          # 参数管理模块
-│   ├── detector.py        # 检测器模块（使用github_halcondetector）
+│   ├── detector.py        # 标定侧检测入口
+│   ├── pattern/           # 圆点检测（椭圆、几何、圆网格、HALCON 板）
 │   ├── calibrator.py      # 标定器核心模块
 │   └── utils.py           # 工具函数模块
 ├── api/                    # API接口
@@ -30,7 +31,7 @@ refactored/
 参数管理模块，包含 `CalibParamHolder` 类，用于存储和管理相机标定参数（内参、外参、标定板参数）。
 
 ### 2. detector.py
-检测器模块，使用 `github_halcondetector` 进行标定板检测。包含 `PatternBoard` 类和 `detect_pattern` 函数。
+`detector.py` 提供 `PatternBoard` 和 `detect_pattern`。圆点查找在 `pattern/`：`circles.py` 负责普通圆网格，`halcon_board.py` 负责 HALCON 标定板，`ellipse.py` 和 `geometry.py` 是两者共用的拟合与排序。
 
 ### 3. calibrator.py
 核心标定器模块，包含：
@@ -77,14 +78,13 @@ calibrator.save_camera_params_to_json("output.json")
 ## 依赖说明
 
 项目依赖以下模块：
-- `github_halcondetector`: 标定板检测器（位于项目根目录）
 - `opencv-python`: 图像处理
 - `numpy`: 数值计算
 - `scipy`: 科学计算（用于优化）
 
 ## 注意事项
 
-1. **检测器**: 项目使用 `github_halcondetector` 进行标定板检测，不再使用 `corner_detector`。
+1. **检测器**: 标定板检测在 `telecentric_calib.pattern`。
 2. **路径处理**: 图像读取和保存使用 `utils.py` 中的函数，支持中文路径。
 3. **编码问题**: 使用OpenCV和matplotlib时，注意中文显示问题（已配置SimHei字体）。
 
@@ -94,7 +94,7 @@ calibrator.save_camera_params_to_json("output.json")
 1. **模块化设计**: 代码按功能模块组织，便于维护
 2. **清晰的层次结构**: src/api/examples/tests分离
 3. **统一的接口**: 使用统一的API接口
-4. **改进的检测器**: 只使用github_halcondetector，不再使用corner_detector
+4. **改进的检测器**: 圆点检测收进 `pattern` 子包
 
 ## 开发状态
 
