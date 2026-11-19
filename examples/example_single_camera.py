@@ -6,15 +6,15 @@ import sys
 import os
 import numpy as np
 
-# 添加项目根目录到路径
+# 添加 src 到路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
-sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, "src"))
 
 try:
-    from telecentric_calib.params import CalibParamHolder
-    from telecentric_calib.calibrator import TelecentricCalibrator
+    from telecentric_calib.api import calibrate_mono, save_mono_params
     from telecentric_calib.config import get_config
+    from telecentric_calib.params import CalibParamHolder
 except ImportError as e:
     print(f"✗ 模块导入失败: {e}")
     import traceback
@@ -77,23 +77,17 @@ def main():
         # 获取verbose设置
         verbose = config.get('output.verbose', True)
         
-        # 创建标定器
         print("\n" + "=" * 60)
         print("开始单相机标定")
         print("=" * 60)
-        calibrator = TelecentricCalibrator(param_holder, image_dir, verbose=verbose)
-        print("✓ 标定器创建成功")
-        
-        # 执行标定
         print("\n开始执行标定...")
-        calibrator.single_camera_calibration()
+        calibration = calibrate_mono(image_dir, param_holder, verbose=verbose)
         print("✓ 标定完成")
         
-        # 保存标定结果
         output_dir = config.get_path('output_dir', create=True)
         output_filename = config.get('output.left_camera_output', 'calibration_result.json')
         output_path = os.path.join(output_dir, output_filename)
-        calibrator.save_camera_params_to_json(output_path, image_index=0)
+        save_mono_params(calibration, output_path, image_index=0)
         
         print("\n✅ 标定完成！")
         print(f"结果已保存到: {output_path}")

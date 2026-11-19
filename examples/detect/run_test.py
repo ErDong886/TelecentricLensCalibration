@@ -5,8 +5,8 @@
     python run_test.py <图像文件或文件夹路径>
     
 示例:
-    python run_test.py ../find_calib_pattern/test/2.bmp          # 单个文件
-    python run_test.py ../find_calib_pattern/test/               # 批量处理文件夹
+    python run_test.py image.bmp          # 单个文件
+    python run_test.py images/            # 批量处理文件夹
 """
 
 import sys
@@ -16,9 +16,11 @@ import numpy as np
 from pathlib import Path
 import glob
 
-# 导入本地模块
-from fit_ellipse_subpixel import fit_ellipse_subpixel
-from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+_ROOT = Path(__file__).resolve().parents[2] / "src"
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from telecentric_calib.detect import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 WINDOW_NAME = "标定板检测结果"
@@ -225,8 +227,8 @@ def main():
     if len(sys.argv) < 2:
         print("用法: python run_test.py <图像文件或文件夹路径>")
         print("\n示例:")
-        print("  单个文件: python run_test.py ../find_calib_pattern/test/2.bmp")
-        print("  批量处理: python run_test.py ../find_calib_pattern/test/")
+        print("  单个文件: python run_test.py image.bmp")
+        print("  批量处理: python run_test.py images/")
         return 1
     
     input_path = sys.argv[1]

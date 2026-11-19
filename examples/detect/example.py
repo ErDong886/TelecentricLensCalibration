@@ -1,29 +1,29 @@
 """
 示例脚本 - 演示如何使用标定板检测库
 
-这个脚本展示了两种使用方式：
-1. 通用圆形网格检测
-2. Halcon标定板检测
+用法:
+    python examples/detect/example.py <图像路径>
 """
+
+import sys
+import traceback
+from pathlib import Path
 
 import cv2
 import numpy as np
-from find_calib_pattern import FindCirclesGridPattern, FindHalconCalibBoard
+
+_ROOT = Path(__file__).resolve().parents[2] / "src"
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from telecentric_calib.detect import FindCirclesGridPattern, FindHalconCalibBoard
 
 
-def example_circles_grid():
+def example_circles_grid(img):
     """示例1: 通用圆形网格检测"""
     print("=" * 60)
     print("示例1: 通用圆形网格检测")
     print("=" * 60)
-    
-    # 读取图像
-    img_path = '../find_calib_pattern/test/1.png'
-    img = cv2.imread(img_path)
-    
-    if img is None:
-        print(f"无法读取图像: {img_path}")
-        return
     
     # 检测标定板 (7x7 网格)
     pat_size = (7, 7)
@@ -85,19 +85,11 @@ def example_circles_grid():
         print("✗ 检测失败")
 
 
-def example_halcon_board():
+def example_halcon_board(img):
     """示例2: Halcon标定板检测"""
     print("\n" + "=" * 60)
     print("示例2: Halcon标定板检测")
     print("=" * 60)
-    
-    # 读取图像
-    img_path = '../find_calib_pattern/test/1.png'
-    img = cv2.imread(img_path)
-    
-    if img is None:
-        print(f"无法读取图像: {img_path}")
-        return
     
     # 检测Halcon标定板
     pat_size = (7, 7)
@@ -171,18 +163,11 @@ def example_halcon_board():
         print("✗ 检测失败")
 
 
-def example_with_custom_threshold():
+def example_with_custom_threshold(img):
     """示例3: 使用自定义阈值"""
     print("\n" + "=" * 60)
     print("示例3: 使用自定义阈值")
     print("=" * 60)
-    
-    img_path = '../find_calib_pattern/test/1.png'
-    img = cv2.imread(img_path)
-    
-    if img is None:
-        print(f"无法读取图像: {img_path}")
-        return
     
     pat_size = (7, 7)
     
@@ -206,20 +191,25 @@ def example_with_custom_threshold():
 
 def main():
     """主函数"""
+    if len(sys.argv) != 2:
+        print("用法: python examples/detect/example.py <图像路径>")
+        return 1
+
+    img_path = sys.argv[1]
+    img = cv2.imread(img_path)
+    if img is None:
+        print(f"无法读取图像: {img_path}")
+        return 1
+
     print("\n")
     print("╔" + "═" * 58 + "╗")
     print("║" + " " * 10 + "标定板检测库 - 使用示例" + " " * 24 + "║")
     print("╚" + "═" * 58 + "╝")
     
     try:
-        # 示例1: 通用圆形网格检测
-        example_circles_grid()
-        
-        # 示例2: Halcon标定板检测
-        example_halcon_board()
-        
-        # 示例3: 自定义阈值
-        example_with_custom_threshold()
+        example_circles_grid(img)
+        example_halcon_board(img)
+        example_with_custom_threshold(img)
         
         print("\n" + "=" * 60)
         print("所有示例运行完成!")
@@ -227,12 +217,13 @@ def main():
         
     except Exception as e:
         print(f"\n错误: {e}")
-        import traceback
         traceback.print_exc()
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
 
 
 

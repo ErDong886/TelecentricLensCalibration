@@ -7,15 +7,21 @@ import sys
 import os
 import numpy as np
 
-# 添加项目根目录到路径
+# 添加 src 到路径
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
-sys.path.insert(0, project_root)
+sys.path.insert(0, os.path.join(project_root, "src"))
 
 try:
-    from telecentric_calib.params import CalibParamHolder
-    from telecentric_calib.calibrator import TelecentricCalibrator, DualCameraCalibrator
+    from telecentric_calib.api import (
+        calibrate_mono,
+        calibrate_stereo,
+        save_fundamental_matrix,
+        save_mono_params,
+        save_reconstruction_errors,
+    )
     from telecentric_calib.config import get_config
+    from telecentric_calib.params import CalibParamHolder
 except ImportError as e:
     print(f"✗ 模块导入失败: {e}")
     import traceback
@@ -26,8 +32,6 @@ except ImportError as e:
 def main():
     """双相机标定示例"""
     try:
-        import numpy as np
-        
         # 加载配置文件
         config = get_config()
         print("=" * 60)
@@ -108,17 +112,13 @@ def main():
         print("步骤2: 左相机标定")
         print("=" * 60)
         
-        left_camera_calibrator = TelecentricCalibrator(left_param_holder, left_image_dir, verbose=verbose)
-        print("✓ 左相机标定器创建成功")
-        
-        left_camera_calibrator.single_camera_calibration()
+        left_calibration = calibrate_mono(left_image_dir, left_param_holder, verbose=verbose)
         print("✓ 左相机标定完成")
         
-        # 保存左相机参数
         output_dir = config.get_path('output_dir', create=True)
         left_output_filename = config.get('output.left_camera_output', 'leftCKmatrix.json')
         left_output_path = os.path.join(output_dir, left_output_filename)
-        left_camera_calibrator.save_camera_params_to_json(left_output_path, image_index=0)
+        save_mono_params(left_calibration, left_output_path, image_index=0)
         print(f"✓ 左相机参数已保存到: {left_output_path}")
         
         # ========== 4. 右相机标定 ==========
@@ -126,16 +126,12 @@ def main():
         print("步骤3: 右相机标定")
         print("=" * 60)
         
-        right_camera_calibrator = TelecentricCalibrator(right_param_holder, right_image_dir, verbose=verbose)
-        print("✓ 右相机标定器创建成功")
-        
-        right_camera_calibrator.single_camera_calibration()
+        right_calibration = calibrate_mono(right_image_dir, right_param_holder, verbose=verbose)
         print("✓ 右相机标定完成")
         
-        # 保存右相机参数
         right_output_filename = config.get('output.right_camera_output', 'rightCKmatrix.json')
         right_output_path = os.path.join(output_dir, right_output_filename)
-        right_camera_calibrator.save_camera_params_to_json(right_output_path, image_index=0)
+        save_mono_params(right_calibration, right_output_path, image_index=0)
         print(f"✓ 右相机参数已保存到: {right_output_path}")
         
         # ========== 5. 双目标定 ==========
@@ -147,19 +143,15 @@ def main():
         left_image_name = config.get('binocular.left_image_name', '0_left.bmp')
         right_image_name = config.get('binocular.right_image_name', '0_right.bmp')
         
-        dual_camera_calibrator = DualCameraCalibrator(
-            left_camera_calibrator, 
-            right_camera_calibrator, 
+        print("✓ 双目标定器创建成功")
+        Mat_left, Mat_right, reconstructed_points, points_theory, results = calibrate_stereo(
+            left_calibration,
+            right_calibration,
             binocular_image_dir,
             left_image_name=left_image_name,
             right_image_name=right_image_name,
-            verbose=verbose
+            verbose=verbose,
         )
-        print("✓ 双目标定器创建成功")
-        
-        # 执行双目标定
-        Mat_left, Mat_right, reconstructed_points, points_theory, results = \
-            dual_camera_calibrator.dual_camera_calibration()
         print("✓ 双目标定完成")
         
         # ========== 6. 保存结果和误差评价 ==========
@@ -170,20 +162,22 @@ def main():
         # 保存基础矩阵
         fundamental_matrix_filename = config.get('output.fundamental_matrix_output', 'fundamentalMatrix.json')
         fundamental_matrix_path = os.path.join(output_dir, fundamental_matrix_filename)
-        dual_camera_calibrator.save_fundamental_matrix_json(
-            results['points_pixel_left'], 
-            results['points_pixel_right'], 
-            fundamental_matrix_path
+        save_fundamental_matrix(
+            results['points_pixel_left'],
+            results['points_pixel_right'],
+            fundamental_matrix_path,
+            verbose=verbose,
         )
         
         # 保存重建误差统计
         reconstruction_errors_filename = config.get('output.reconstruction_errors_output', 'reconstruction_errors.json')
         reconstruction_errors_path = os.path.join(output_dir, reconstruction_errors_filename)
-        dual_camera_calibrator.save_reconstruction_errors_json(
+        save_reconstruction_errors(
             points_theory,
             results['distorted'],
             results['undistorted'],
-            reconstruction_errors_path
+            reconstruction_errors_path,
+            verbose=verbose,
         )
         
         # ========== 7. 误差评价总结 ==========
@@ -220,8 +214,11 @@ def main():
         rms_undistorted = np.sqrt(np.mean(errors_undistorted**2))
         print(f"整体RMS误差: {rms_undistorted:.6f} mm")
         
-        improvement = (rms_distorted - rms_undistorted) / rms_distorted * 100
-        print(f"\n精度提升: {improvement:.2f}%")
+        if rms_distorted == 0:
+            print("\n未校正 RMS 为 0，不计算提升比例")
+        else:
+            improvement = (rms_distorted - rms_undistorted) / rms_distorted * 100
+            print(f"\n精度提升: {improvement:.2f}%")
         
         print("\n✅ 所有标定结果已保存！")
         print(f"  - {left_output_path}: 左相机内参和外参")
