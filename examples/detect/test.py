@@ -18,11 +18,11 @@ import numpy as np
 
 from pathlib import Path
 
-_ROOT = Path(__file__).resolve().parents[2]
+_ROOT = Path(__file__).resolve().parents[2] / "src"
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from telecentric_calib.pattern import FindCirclesGridPattern, FindHalconCalibBoard
+from telecentric_calib.detect import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 WINDOW_NAME = "FindHalconCalibBoard()"

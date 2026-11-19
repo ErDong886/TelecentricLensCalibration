@@ -123,3 +123,46 @@ def visualize_detection(image: np.ndarray, centers: List[Tuple[float, float]],
     
     return img_vis
 
+
+def save_camera_params(final_params, output_path, image_index=0, log=print):
+    """保存一台相机的 CK 矩阵、内参、畸变和外参。"""
+    if final_params is None:
+        raise ValueError("final_params未确定，请先执行single_camera_calibration")
+
+    alpha, beta, gamma, k1, k2, rotations, translations = final_params
+    if image_index >= len(rotations):
+        log(f"⚠️  警告：image_index={image_index}超出范围，使用第一张图像的外参")
+        image_index = 0
+
+    rotation = rotations[image_index]
+    translation = translations[image_index]
+    intrinsic = np.array([
+        [alpha, gamma, 0, 0],
+        [0, beta, 0, 0],
+        [0, 0, 0, 1],
+    ])
+    extrinsic = np.array([
+        [rotation[0, 0], rotation[0, 1], rotation[0, 2], translation[0]],
+        [rotation[1, 0], rotation[1, 1], rotation[1, 2], translation[1]],
+        [rotation[2, 0], rotation[2, 1], rotation[2, 2], 0],
+        [0, 0, 0, 1],
+    ])
+    ck_matrix = intrinsic @ extrinsic
+    output = {
+        "CK_matrix": ck_matrix[:3, :].tolist(),
+        "intrinsics": {
+            "alpha": float(alpha),
+            "beta": float(beta),
+            "gamma": float(gamma),
+        },
+        "distortion": {
+            "k1": float(k1),
+            "k2": float(k2),
+        },
+        "rotation_matrix": rotation.tolist(),
+        "translation": [float(translation[0]), float(translation[1])],
+    }
+    save_json(output, output_path)
+    log(f"✅ 相机参数已保存到: {output_path}")
+    return output
+

@@ -1,9 +1,5 @@
-"""标定侧检测入口：标定板参数，以及圆网格 / HALCON 板的回退检测。"""
-import cv2
+"""标定板几何：阵列尺寸、间距和世界坐标。"""
 import numpy as np
-from typing import List, Tuple, Optional
-
-from .pattern import FindCirclesGridPattern, FindHalconCalibBoard
 
 
 class PatternBoard:
@@ -58,69 +54,4 @@ class PatternBoard:
                 cp_int[i * w + j] = [i, j, 0]
         return cp_int * self.distance
 
-
-def detect_pattern(image: np.ndarray, pat_size: Tuple[int, int], 
-                   auto_threshold: bool = True) -> Tuple[bool, List, Optional[List]]:
-    """
-    检测标定板图案
-    
-    参数:
-        image: 输入图像 (BGR格式)
-        pat_size: 标定板尺寸 (rows, cols)
-        auto_threshold: 是否自动尝试不同阈值
-    
-    返回:
-        (success, centers, ellipses)
-        success: 是否检测成功
-        centers: 检测到的中心点列表
-        ellipses: 椭圆信息列表（如果有）
-    """
-    # 方法1: 尝试通用圆形网格检测
-    success, centers, ellipses = FindCirclesGridPattern(image, pat_size)
-    detection_method = None
-    
-    if not success and auto_threshold:
-        # 尝试不同的阈值
-        for thresh in range(10, 250, 10):
-            success, centers, ellipses = FindCirclesGridPattern(image, pat_size, thresh)
-            if success:
-                detection_method = f"FindCirclesGridPattern (阈值={thresh})"
-                break
-    else:
-        detection_method = "FindCirclesGridPattern (自动阈值)"
-    
-    # 如果第一种方法失败，尝试Halcon方法
-    if not success:
-        success, centers, ellipses = FindHalconCalibBoard(image, pat_size)
-        
-        if not success and auto_threshold:
-            for thresh in range(10, 250, 10):
-                success, centers, ellipses = FindHalconCalibBoard(image, pat_size, thresh)
-                if success:
-                    detection_method = f"FindHalconCalibBoard (阈值={thresh})"
-                    break
-        else:
-            detection_method = "FindHalconCalibBoard (自动阈值)"
-    
-    return success, centers, ellipses
-
-
-def detect_pattern_from_path(image_path: str, pat_size: Tuple[int, int], 
-                             auto_threshold: bool = True) -> Tuple[bool, List, Optional[List]]:
-    """
-    从文件路径检测标定板图案
-    
-    参数:
-        image_path: 图像文件路径
-        pat_size: 标定板尺寸 (rows, cols)
-        auto_threshold: 是否自动尝试不同阈值
-    
-    返回:
-        (success, centers, ellipses)
-    """
-    image = cv2.imread(image_path)
-    if image is None:
-        raise ValueError(f"无法读取图像: {image_path}")
-    
-    return detect_pattern(image, pat_size, auto_threshold)
 
